@@ -3,12 +3,12 @@ import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
 import devConfig from './dev'
 import prodConfig from './prod'
 import NutUIResolver from '@nutui/auto-import-resolver'
+import Components from 'unplugin-vue-components/webpack'
 
-import Components from 'unplugin-vue-components/vite'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
-export default defineConfig<'vite'>(async (merge, { command, mode }) => {
-  const baseConfig: UserConfigExport<'vite'> = {
+export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
+  const baseConfig: UserConfigExport<'webpack5'> = {
     projectName: 'mini-programs-demo',
     date: '2024-10-25',
     designWidth (input) {
@@ -38,12 +38,13 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     },
     framework: 'vue3',
     compiler: {
-      type: 'vite',
-      vitePlugins: [
-        Components({
-          resolvers: [NutUIResolver({taro: true})]
-        })
-      ]
+      type: 'webpack5',
+      prebundle: {
+        enable: false
+      }
+    },
+    cache: {
+      enable: false // Webpack 持久化缓存配置，建议开启。默认配置请参考：https://docs.taro.zone/docs/config-detail#cache
     },
     mini: {
       postcss: {
@@ -60,12 +61,21 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
             generateScopedName: '[name]__[local]___[hash:base64:5]'
           }
         }
+      },
+      webpackChain(chain) {
+        chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
+        chain.plugin('unplugin-vue-components').use(Components({
+          resolvers: [NutUIResolver({taro: true})]
+        }))
       }
     },
     h5: {
       publicPath: '/',
       staticDirectory: 'static',
-
+      output: {
+        filename: 'js/[name].[hash:8].js',
+        chunkFilename: 'js/[name].[chunkhash:8].js'
+      },
       miniCssExtractPluginOption: {
         ignoreOrder: true,
         filename: 'css/[name].[hash].css',
@@ -83,6 +93,12 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
             generateScopedName: '[name]__[local]___[hash:base64:5]'
           }
         }
+      },
+      webpackChain(chain) {
+        chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
+        chain.plugin('unplugin-vue-components').use(Components({
+          resolvers: [NutUIResolver({taro: true})]
+        }))
       }
     },
     rn: {
