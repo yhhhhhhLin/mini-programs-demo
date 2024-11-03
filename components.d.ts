@@ -7,12 +7,8 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    Nut: typeof import('@nutui/nutui-taro')['default']
     NutButton: typeof import('@nutui/nutui-taro')['Button']
-    NutCell: typeof import('@nutui/nutui-taro')['Cell']
-    NutCellGroup: typeof import('@nutui/nutui-taro')['CellGroup']
+    NutCalendarCard: typeof import('@nutui/nutui-taro')['CalendarCard']
     NutNotify: typeof import('@nutui/nutui-taro')['Notify']
-    NutTag: typeof import('@nutui/nutui-taro')['Tag']
-    NutToast: typeof import('@nutui/nutui-taro')['Toast']
   }
 }
