@@ -14,6 +14,5 @@ declare module 'vue' {
     NutDialog: typeof import('@nutui/nutui-taro')['Dialog']
     NutInput: typeof import('@nutui/nutui-taro')['Input']
     NutTable: typeof import('@nutui/nutui-taro')['Table']
-    NutTextarea: typeof import('@nutui/nutui-taro')['Textarea']
   }
 }

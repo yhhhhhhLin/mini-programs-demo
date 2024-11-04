@@ -1,7 +1,7 @@
 <template>
   <view>
     <div class="index">
-      <div class="cal-card">
+      <div class="cal-card" v-if="isCalendarVisible">
         <nut-calendar-card v-model="value" @change="onChange">
           <template #top="{ day }">
             <div class="date-container">
@@ -9,6 +9,9 @@
             </div>
           </template>
         </nut-calendar-card>
+      </div>
+      <div>
+        <nut-cell title="展示隐藏日历" @click="changeCalendarVisible"></nut-cell>
       </div>
       <div class="todo-list">
         <div class="todo-list-title">
@@ -35,7 +38,7 @@
               <div class="add-task-content">
                 <div class="add-task-content-title">请输入任务内容：</div>
                 <div class="add-task-content-body">
-                  <nut-input v-model="addTaskContent" placeholder="输入任务内容" />
+                  <nut-input v-model="addTaskContent" placeholder="输入任务内容"/>
                 </div>
               </div>
             </nut-dialog>
@@ -58,12 +61,14 @@
 </template>
 
 <script setup>
-import {computed, h, reactive, ref} from 'vue'
+import {computed, h, onMounted, reactive, ref} from 'vue'
+import {getCalendarsAndQuantities} from "../../services/home";
 
 const datePickerValue = ref(new Date());
 const value = ref(new Date())
 const addTaskVisible = ref(false)
 const addTaskContent = ref('')
+const isCalendarVisible = ref(true)
 
 const dailyTaskList = reactive([
   {date: 8, count: 3},
@@ -102,6 +107,24 @@ const todoListColumns = ref([
   }
 ])
 
+onMounted(()=>{
+  // 判断是否登录，如果没登陆那么跳转到登陆页面
+  // 发送请求获取日期对应的任务数量
+  getCalendarsAndQuantities().then((res=>{
+    console.log(res)
+  }))
+
+  console.log('开始发送wx.login................')
+  wx.login({
+    success:function(res){
+      console.log('wx.login发送成功,返回结果:'+res.code)
+      // if(res.code){
+      //   console.log(res.code);
+      // }
+    }
+  })
+})
+
 const hasTask = (day) => {
   return dailyTaskList.some(task => task.date === day);
 }
@@ -137,6 +160,11 @@ const onOkAddTask = () => {
   const v = new Date(datePickerValue.value)
   // TODO
   console.log("添加任务发送请求（任务内容，日期年月日时分秒）,时为:%s,分为:%s,秒为:%s,任务内容为:%s", v.getHours(), v.getMinutes(), v.getSeconds(), addTaskContent.value);
+}
+
+const changeCalendarVisible = () => {
+
+  isCalendarVisible.value = !isCalendarVisible.value
 }
 
 const onChange = (e) => {

@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 
 import './app.scss'
+import './pages/login/login.scss'
+import './pages/index/index.scss'
 
 const App = createApp({
   onShow(options) {

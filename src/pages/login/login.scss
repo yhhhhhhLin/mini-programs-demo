@@ -1,0 +1,43 @@
+.login-container {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.background {
+  position: absolute;
+  background-position: center;
+  top: 0;
+  left: -1;
+  right: 0;
+  bottom: 0;
+  //z-index: -1;
+}
+
+.wx-login-button {
+  padding: 10px 20px;
+  width: 80%;
+  background-color: rgba(26, 170, 25, 0.8);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+
+.pw-login-button {
+  padding: 10px 20px;
+  width: 80%;
+  background-color: rgba(25, 170, 141, 0.8);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+
+.login-btn-container{
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  flex-direction: column;
+  margin-bottom: 400px;
+}
