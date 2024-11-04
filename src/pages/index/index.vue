@@ -15,26 +15,92 @@
           <div class="todo-list-title-date">
             日期：{{ formattedDate }}
           </div>
+
           <div class="todo-list-title-add-task">
-            <nut-cell title="添加当天任务" @click="baseClickAddTask"></nut-cell>
-            <nut-dialog title="添加当天任务" content="填" v-model:visible="addTaskVisible" @ok="onOkAddTask" />
+            <nut-button plain type="info" @click="baseClickAddTask">添加当天任务</nut-button>
+            <nut-dialog title="添加任务" v-model:visible="addTaskVisible" @ok="onOkAddTask" @opened="openAddTaskInit">
+              <div>
+                选择时间:
+              </div>
+              <div class="add-task-date-picker">
+                <nut-date-picker
+                  v-model="datePickerValue"
+                  option-height="20"
+                  :show-toolbar="false"
+                  type="time"
+                  :three-dimensional="false"
+                >
+                </nut-date-picker>
+              </div>
+              <div class="add-task-content">
+                <div class="add-task-content-title">请输入任务内容：</div>
+                <div class="add-task-content-body">
+                  <nut-input v-model="addTaskContent" placeholder="输入任务内容" />
+                </div>
+              </div>
+            </nut-dialog>
           </div>
         </div>
-        <div class="todo-list-body">代办内容：</div>
+        <div class="todo-list-body-title">
+          <div class="todo-list-body-title-left">
+            代办内容：
+          </div>
+          <div class="todo-list-body-title-right">
+            {{ currentCount }}
+          </div>
+        </div>
+        <div class="todo-list-body">
+          <nut-table :columns="todoListColumns" :data="taskDetailData"></nut-table>
+        </div>
       </div>
     </div>
   </view>
 </template>
 
 <script setup>
-import {reactive, ref, computed} from 'vue'
+import {computed, h, reactive, ref} from 'vue'
 
-const value = ref(new Date('2024-01-01'))
+const datePickerValue = ref(new Date());
+const value = ref(new Date())
 const addTaskVisible = ref(false)
+const addTaskContent = ref('')
 
 const dailyTaskList = reactive([
   {date: 8, count: 3},
 ]);
+
+const taskDetailData = ref([
+  {
+    TaskTime: '2024-9-10',
+    taskDetail: '这是任务详细',
+    render: () => {
+      return h(
+        'button',
+        {
+          onClick: () => {
+            console.log('完成某个任务')
+          }
+        },
+        '完成'
+      )
+    }
+  },
+])
+
+const todoListColumns = ref([
+  {
+    title: '时间',
+    key: 'TaskTime'
+  },
+  {
+    title: '任务详细',
+    key: 'taskDetail'
+  },
+  {
+    title: '操作',
+    key: 'render'
+  }
+])
 
 const hasTask = (day) => {
   return dailyTaskList.some(task => task.date === day);
@@ -62,8 +128,15 @@ const baseClickAddTask = () => {
   addTaskVisible.value = true;
 };
 
-const onOkAddTask = ()=>{
-  console.log("添加任务发送请求（任务内容，日期年月日时分秒）")
+const openAddTaskInit = () => {
+  datePickerValue.value = new Date()
+  addTaskContent.value = ''
+}
+
+const onOkAddTask = () => {
+  const v = new Date(datePickerValue.value)
+  // TODO
+  console.log("添加任务发送请求（任务内容，日期年月日时分秒）,时为:%s,分为:%s,秒为:%s,任务内容为:%s", v.getHours(), v.getMinutes(), v.getSeconds(), addTaskContent.value);
 }
 
 const onChange = (e) => {
