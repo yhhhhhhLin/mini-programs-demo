@@ -37,6 +37,13 @@ const request = async ({ url, method = 'GET', data = {}, headers = {} }: Request
     });
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      // TODO 增加登陆校验和一些其他的错误判断
+      const baseResponse = response.data;
+      // 未登录代码
+      if(baseResponse.code == 40100){
+        // 跳转到登陆页面
+        Taro.redirectTo({url: '/pages/login/login'});
+      }
       return response.data;
     } else {
       throw new Error(`请求发送错误 ${response.statusCode}`);

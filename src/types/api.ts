@@ -6,8 +6,8 @@ declare namespace API {
     message: string
   }
 
-  type DailyTask = {
-    date: number,
+  type DayAndCountVO = {
+    date: string,
     count: number
   }
 

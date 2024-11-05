@@ -8,7 +8,7 @@ import request from "../../uitls/request";
 //   })
 // }
 //
-export function getCalendarsAndQuantities(year: number, month: number) {
+export function getCalendarsAndQuantities(year: number, month: number){
   return request({
     url: '/task/calendars',
     method: 'GET',

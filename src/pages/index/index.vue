@@ -5,7 +5,7 @@
         <nut-calendar-card v-model="value" @change="onChange">
           <template #top="{ day }">
             <div class="date-container">
-              {{ hasTask(day.date) ? getCount(day.date) : '' }}
+              {{ hasTask([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) ? getCount([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) : '' }}
             </div>
           </template>
         </nut-calendar-card>
@@ -73,7 +73,7 @@ const addTaskContent = ref('')
 const isCalendarVisible = ref(true)
 
 const dailyTaskList = reactive([
-  {date: 8, count: 3},
+  {date: '2024-11-08', count: 3},
 ]);
 
 const taskDetailData = ref([
@@ -122,11 +122,13 @@ onMounted(async () => {
 })
 
 const getCalendarsByMonth = async () => {
-  const date = new Date(datePickerValue.value);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  getCalendarsAndQuantities(date.getFullYear(), month).then((res => {
 
-    console.log('获取成功日历信息:' + res.date)
+  const date = new Date(datePickerValue.value);
+  const month = String(date.getMonth()).padStart(2, '0');
+  getCalendarsAndQuantities(date.getFullYear(), month).then((res => {
+    const dayAndCountVOs = res.data
+    dailyTaskList.splice(0, dailyTaskList.length);
+    dailyTaskList.push(...dayAndCountVOs);
   }))
 }
 
@@ -140,8 +142,7 @@ const getCount = (day) => {
 }
 
 const currentCount = computed(() => {
-  const date = new Date(value.value);
-  return getCount(date.getDate());
+  return getCount(formattedDate.value);
 });
 
 const formattedDate = computed(() => {
