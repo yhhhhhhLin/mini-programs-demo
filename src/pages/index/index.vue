@@ -63,6 +63,8 @@
 <script setup>
 import {computed, h, onMounted, reactive, ref} from 'vue'
 import {getCalendarsAndQuantities} from "../../services/home";
+import {isLogin} from "../../uitls/request";
+import Taro from "@tarojs/taro";
 
 const datePickerValue = ref(new Date());
 const value = ref(new Date())
@@ -107,23 +109,26 @@ const todoListColumns = ref([
   }
 ])
 
-onMounted(()=>{
+onMounted(async () => {
   // 判断是否登录，如果没登陆那么跳转到登陆页面
   // 发送请求获取日期对应的任务数量
-  getCalendarsAndQuantities().then((res=>{
-    console.log(res)
-  }))
-
-  console.log('开始发送wx.login................')
-  wx.login({
-    success:function(res){
-      console.log('wx.login发送成功,返回结果:'+res.code)
-      // if(res.code){
-      //   console.log(res.code);
-      // }
-    }
-  })
+  const loggedIn = await isLogin();
+  if (!loggedIn) {
+    // 如果没有登录，跳转到登录页面并终止后续操作
+    Taro.redirectTo({url: '/pages/login/login'});
+    return; // 终止后续的请求调用
+  }
+  const temp = await getCalendarsByMonth();
 })
+
+const getCalendarsByMonth = async () => {
+  const date = new Date(datePickerValue.value);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  getCalendarsAndQuantities(date.getFullYear(), month).then((res => {
+
+    console.log('获取成功日历信息:' + res.date)
+  }))
+}
 
 const hasTask = (day) => {
   return dailyTaskList.some(task => task.date === day);

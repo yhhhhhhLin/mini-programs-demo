@@ -8,10 +8,11 @@ import request from "../../uitls/request";
 //   })
 // }
 //
-export function getCalendarsAndQuantities(){
+export function getCalendarsAndQuantities(year: number, month: number) {
   return request({
-    url: '/home/user/calendars',
-    method: 'GET'
+    url: '/task/calendars',
+    method: 'GET',
+    data: {year, month},
   })
 
 }
