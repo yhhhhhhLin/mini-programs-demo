@@ -11,4 +11,12 @@ declare namespace API {
     count: number
   }
 
+  type AddTaskDTO = {
+    taskContent:string,
+    taskTime: Date,
+    // TODO 后续添加发送这个参数
+    needNotify: boolean
+
+  }
+
 }

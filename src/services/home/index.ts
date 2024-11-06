@@ -1,5 +1,4 @@
 import request from "../../uitls/request";
-
 // export function userLogin(loginInfo: API.LoginUserInfo) {
 //   return request({
 //     url: '/main/user/login',
@@ -13,6 +12,15 @@ export function getCalendarsAndQuantities(year: number, month: number){
     url: '/task/calendars',
     method: 'GET',
     data: {year, month},
+  })
+
+}
+
+export function addTask(dto:API.AddTaskDTO){
+  return request({
+    url: '/task/add',
+    method: 'POST',
+    data: dto,
   })
 
 }

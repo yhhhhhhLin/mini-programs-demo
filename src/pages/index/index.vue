@@ -2,10 +2,12 @@
   <view>
     <div class="index">
       <div class="cal-card" v-if="isCalendarVisible">
-        <nut-calendar-card v-model="value" @change="onChange">
+        <nut-calendar-card v-model="calendarsPickDate" @change="onChange" @page-change = "onChangeMonth">
           <template #top="{ day }">
             <div class="date-container">
-              {{ hasTask([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) ? getCount([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) : '' }}
+              {{
+                hasTask([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) ? getCount([String(day.year), String(day.month).padStart(2, '0'), String(day.date).padStart(2, '0')].join('-')) : ''
+              }}
             </div>
           </template>
         </nut-calendar-card>
@@ -30,7 +32,7 @@
                   v-model="datePickerValue"
                   option-height="20"
                   :show-toolbar="false"
-                  type="time"
+                  type="hour-minute"
                   :three-dimensional="false"
                 >
                 </nut-date-picker>
@@ -62,18 +64,18 @@
 
 <script setup>
 import {computed, h, onMounted, reactive, ref} from 'vue'
-import {getCalendarsAndQuantities} from "../../services/home";
+import {addTask, getCalendarsAndQuantities} from "../../services/home";
 import {isLogin} from "../../uitls/request";
 import Taro from "@tarojs/taro";
 
+// 选择日期后只会更新时和分，不会更新年月日
 const datePickerValue = ref(new Date());
-const value = ref(new Date())
+const calendarsPickDate = ref(new Date())
 const addTaskVisible = ref(false)
 const addTaskContent = ref('')
 const isCalendarVisible = ref(true)
 
 const dailyTaskList = reactive([
-  {date: '2024-11-08', count: 3},
 ]);
 
 const taskDetailData = ref([
@@ -118,27 +120,31 @@ onMounted(async () => {
     Taro.redirectTo({url: '/pages/login/login'});
     return; // 终止后续的请求调用
   }
-  const temp = await getCalendarsByMonth();
-})
-
-const getCalendarsByMonth = async () => {
 
   const date = new Date(datePickerValue.value);
-  const month = String(date.getMonth()).padStart(2, '0');
-  getCalendarsAndQuantities(date.getFullYear(), month).then((res => {
+  const month = String(date.getMonth()+1).padStart(2, '0');
+  const year = date.getFullYear()
+  const temp = await getCalendarsByMonth(year,month);
+})
+
+const getCalendarsByMonth = async (year, month) => {
+
+  getCalendarsAndQuantities(year, month).then((res => {
     const dayAndCountVOs = res.data
-    dailyTaskList.splice(0, dailyTaskList.length);
-    dailyTaskList.push(...dayAndCountVOs);
+    dailyTaskList.length = 0
+    dayAndCountVOs.forEach(item => {
+      dailyTaskList.push(item);
+    });
   }))
 }
 
 const hasTask = (day) => {
-  return dailyTaskList.some(task => task.date === day);
+  return dailyTaskList.some(task => task.taskDay === day);
 }
 
 const getCount = (day) => {
-  const task = dailyTaskList.find(task => task.date === day);
-  return task ? task.count : 0;
+  const task = dailyTaskList.find(task => task.taskDay === day);
+  return task ? task.taskCount : 0;
 }
 
 const currentCount = computed(() => {
@@ -146,7 +152,7 @@ const currentCount = computed(() => {
 });
 
 const formattedDate = computed(() => {
-  const date = new Date(value.value);
+  const date = new Date(calendarsPickDate.value);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -163,9 +169,22 @@ const openAddTaskInit = () => {
 }
 
 const onOkAddTask = () => {
-  const v = new Date(datePickerValue.value)
-  // TODO
-  console.log("添加任务发送请求（任务内容，日期年月日时分秒）,时为:%s,分为:%s,秒为:%s,任务内容为:%s", v.getHours(), v.getMinutes(), v.getSeconds(), addTaskContent.value);
+  const addDate = new Date(datePickerValue.value)
+
+  const date = new Date(calendarsPickDate.value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth()).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  addDate.setFullYear(year)
+  addDate.setMonth(month)
+  addDate.setDate(day)
+  addTask({taskContent: addTaskContent.value, taskTime: addDate, needNotify: false}).then((res) => {
+    // 添加成功后重新获取日历信息和当日任务
+    getCalendarsByMonth(year,parseInt(month)+1);
+
+    console.log("添加任务返回结果：%s",res.data)
+  })
+
 }
 
 const changeCalendarVisible = () => {
@@ -174,8 +193,16 @@ const changeCalendarVisible = () => {
 }
 
 const onChange = (e) => {
-  value.value = e;
+  calendarsPickDate.value = e;
   console.log('发送请求获取当前日期对应的所有任务，更新到代办内容中')
+}
+
+const onChangeMonth = ({year, month})=>{
+  console.log("切换日期年月,年：{}，月：{}",year,month)
+  // 重新请求获取当前年月日期对应的任务
+  getCalendarsByMonth(year,month);
+
+
 }
 
 const show = ref(false)
