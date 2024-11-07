@@ -12,11 +12,35 @@ declare namespace API {
   }
 
   type AddTaskDTO = {
-    taskContent:string,
+    taskContent: string,
     taskTime: Date,
     // TODO 后续添加发送这个参数
     needNotify: boolean
+  }
 
+  type QueryTaskDTO = {
+    year: number,
+    month: number,
+    day: number
+  }
+
+  type TaskVO = {
+    id: number,
+    taskContent: string,
+    taskTime: Date,
+    taskStatus: number,
+    needNotify: boolean
+  }
+
+  type TaskClassificationVO = {
+    expiredTasks :TaskVO[],
+    completedTasks:TaskVO[],
+    incompleteTasks: TaskVO[]
+  }
+
+  type UpdateStatusDTO = {
+    id: number,
+    status: number
   }
 
 }

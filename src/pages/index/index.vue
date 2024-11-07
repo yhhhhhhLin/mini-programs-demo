@@ -2,7 +2,7 @@
   <view>
     <div class="index">
       <div class="cal-card" v-if="isCalendarVisible">
-        <nut-calendar-card v-model="calendarsPickDate" @change="onChange" @page-change = "onChangeMonth">
+        <nut-calendar-card v-model="calendarsPickDate" @change="onChange" @page-change="onChangeMonth">
           <template #top="{ day }">
             <div class="date-container">
               {{
@@ -54,9 +54,39 @@
             {{ currentCount }}
           </div>
         </div>
+
         <div class="todo-list-body">
-          <nut-table :columns="todoListColumns" :data="taskDetailData"></nut-table>
+          <div class="todo-list-body-expired-task">
+            <nut-collapse>
+              <nut-collapse-item name="expired-task" title="标题">
+                <template #title>超时任务</template>
+                <template #value>{{ expiredTaskCount }}</template>
+                <nut-table :columns="todoListColumns" :data="expiredTaskList"></nut-table>
+              </nut-collapse-item>
+            </nut-collapse>
+          </div>
+
+          <div class="todo-list-body-incomplete-task">
+            <nut-collapse>
+              <nut-collapse-item name="name未完成任务" title="未完成任务" value="数量">
+                <template #title>未完成任务</template>
+                <template #value>{{ inCompleteTaskCount }}</template>
+                <nut-table :columns="todoListColumns" :data="inCompleteTaskList"></nut-table>
+              </nut-collapse-item>
+            </nut-collapse>
+          </div>
+
+          <div class="todo-list-body-complete-task">
+            <nut-collapse>
+              <nut-collapse-item name="name完成任务" title="完成任务" value="数量">
+                <template #title>完成任务</template>
+                <template #value>{{ completeTaskCount }}</template>
+                <nut-table :columns="todoListColumns" :data="completeTaskList"></nut-table>
+              </nut-collapse-item>
+            </nut-collapse>
+          </div>
         </div>
+
       </div>
     </div>
   </view>
@@ -64,7 +94,7 @@
 
 <script setup>
 import {computed, h, onMounted, reactive, ref} from 'vue'
-import {addTask, getCalendarsAndQuantities} from "../../services/home";
+import {addTask, getCalendarsAndQuantities, listTask, updateTaskStatus} from "../../services/home";
 import {isLogin} from "../../uitls/request";
 import Taro from "@tarojs/taro";
 
@@ -75,40 +105,55 @@ const addTaskVisible = ref(false)
 const addTaskContent = ref('')
 const isCalendarVisible = ref(true)
 
-const dailyTaskList = reactive([
-]);
+const expiredTaskList = reactive([]);
+const expiredTaskCount = ref(0)
+const inCompleteTaskList = reactive([]);
+const inCompleteTaskCount = ref(0)
+const completeTaskList = reactive([]);
+const completeTaskCount = ref(0)
 
-const taskDetailData = ref([
-  {
-    TaskTime: '2024-9-10',
-    taskDetail: '这是任务详细',
-    render: () => {
-      return h(
-        'button',
-        {
-          onClick: () => {
-            console.log('完成某个任务')
-          }
-        },
-        '完成'
-      )
-    }
-  },
-])
+
+const dailyTaskList = reactive([]);
 
 const todoListColumns = ref([
   {
     title: '时间',
-    key: 'TaskTime'
+    key: 'taskTime',
   },
   {
     title: '任务详细',
-    key: 'taskDetail'
+    key: 'taskContent',
   },
   {
     title: '操作',
-    key: 'render'
+    key: 'render',
+    render: (row, column, index) => {
+      // 判断任务类型，根据类型显示不同的按钮
+      if (row.taskStatus === 2 || row.taskStatus === 0) {
+        return h(
+          'button',
+          {
+            type: 'primary',
+            onClick: () => finishTask(row)
+          },
+          '完成'
+        )
+      } else if (row.taskStatus === 1) {
+        return h(
+          'button',
+          {
+            type: 'warning',
+            onClick: () => unFinishTask(row)
+          },
+          '取消完成'
+        )
+      }
+    }
   }
+  // {
+  //   title: '操作',
+  //   key: 'render'
+  // }
 ])
 
 onMounted(async () => {
@@ -118,13 +163,16 @@ onMounted(async () => {
   if (!loggedIn) {
     // 如果没有登录，跳转到登录页面并终止后续操作
     Taro.redirectTo({url: '/pages/login/login'});
-    return; // 终止后续的请求调用
+    return;
   }
 
   const date = new Date(datePickerValue.value);
-  const month = String(date.getMonth()+1).padStart(2, '0');
   const year = date.getFullYear()
-  const temp = await getCalendarsByMonth(year,month);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const temp = await getCalendarsByMonth(year, month);
+  // 获取当前天的是所有任务
+  await getTaskByDate(year, month, day);
 })
 
 const getCalendarsByMonth = async (year, month) => {
@@ -136,6 +184,63 @@ const getCalendarsByMonth = async (year, month) => {
       dailyTaskList.push(item);
     });
   }))
+}
+
+function formatTaskTime(taskTime) {
+  const date = new Date(taskTime);
+  return [date.getHours(), date.getMinutes()].join(':');
+}
+
+const getTaskByDate = async (year, month, day) => {
+  listTask({year, month, day}).then((res) => {
+    const result = res.data;
+    // TODO 抽成一个方法
+    expiredTaskList.length = 0;
+    result.expiredTasks.forEach(item => {
+      item.taskTime = formatTaskTime(item.taskTime);
+      expiredTaskList.push(item)
+    });
+    expiredTaskCount.value = result.expiredTasks.length
+
+    inCompleteTaskList.length = 0;
+    result.incompleteTasks.forEach(item => {
+      item.taskTime = formatTaskTime(item.taskTime);
+      inCompleteTaskList.push(item)
+    });
+    inCompleteTaskCount.value = result.incompleteTasks.length
+
+    completeTaskList.length = 0;
+    result.completedTasks.forEach(item => {
+      item.taskTime = formatTaskTime(item.taskTime);
+      completeTaskList.push(item)
+    });
+    completeTaskCount.value = result.completedTasks.length
+  })
+}
+
+const TASK_IN_COMPLETE_STATUS = 0
+const TASK_COMPLETE_STATUS = 1
+const finishTask = (row) => {
+  updateTaskStatus({id: row.id, status: TASK_COMPLETE_STATUS}).then(res => {
+
+    const date = new Date(calendarsPickDate.value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    getTaskByDate(year, parseInt(month) + 1, parseInt(day));
+    console.log('完成任务:' + row + ',结果:' + res.data)
+  })
+}
+
+const unFinishTask = (row) => {
+  updateTaskStatus({id: row.id, status: TASK_IN_COMPLETE_STATUS}).then(res => {
+    const date = new Date(calendarsPickDate.value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    getTaskByDate(year, parseInt(month) + 1, parseInt(day));
+    console.log('取消完成任务:' + row + ',结果:' + res.data)
+  })
 }
 
 const hasTask = (day) => {
@@ -164,7 +269,9 @@ const baseClickAddTask = () => {
 };
 
 const openAddTaskInit = () => {
-  datePickerValue.value = new Date()
+  const date = new Date()
+  date.setSeconds(0, 0)
+  datePickerValue.value = date
   addTaskContent.value = ''
 }
 
@@ -180,9 +287,8 @@ const onOkAddTask = () => {
   addDate.setDate(day)
   addTask({taskContent: addTaskContent.value, taskTime: addDate, needNotify: false}).then((res) => {
     // 添加成功后重新获取日历信息和当日任务
-    getCalendarsByMonth(year,parseInt(month)+1);
-
-    console.log("添加任务返回结果：%s",res.data)
+    getCalendarsByMonth(year, parseInt(month) + 1);
+    getTaskByDate(year, parseInt(month) + 1, parseInt(day));
   })
 
 }
@@ -192,15 +298,17 @@ const changeCalendarVisible = () => {
   isCalendarVisible.value = !isCalendarVisible.value
 }
 
-const onChange = (e) => {
+const onChange = async (e) => {
   calendarsPickDate.value = e;
-  console.log('发送请求获取当前日期对应的所有任务，更新到代办内容中')
+  const year = e.getFullYear()
+  const month = e.getMonth() + 1;
+  const day = e.getDate();
+  await getTaskByDate(year, month, day);
 }
 
-const onChangeMonth = ({year, month})=>{
-  console.log("切换日期年月,年：{}，月：{}",year,month)
+const onChangeMonth = ({year, month}) => {
   // 重新请求获取当前年月日期对应的任务
-  getCalendarsByMonth(year,month);
+  getCalendarsByMonth(year, month);
 
 
 }

@@ -7,7 +7,7 @@ import request from "../../uitls/request";
 //   })
 // }
 //
-export function getCalendarsAndQuantities(year: number, month: number){
+export function getCalendarsAndQuantities(year: number, month: number) {
   return request({
     url: '/task/calendars',
     method: 'GET',
@@ -16,11 +16,26 @@ export function getCalendarsAndQuantities(year: number, month: number){
 
 }
 
-export function addTask(dto:API.AddTaskDTO){
+export function addTask(dto: API.AddTaskDTO) {
   return request({
     url: '/task/add',
     method: 'POST',
     data: dto,
   })
+}
 
+export function listTask(dto: API.QueryTaskDTO): Promise<API.BaseResponse<API.TaskClassificationVO>> {
+  return request({
+    url: '/task/list',
+    method: "POST",
+    data: dto,
+  })
+}
+
+export function updateTaskStatus(dto: API.UpdateStatusDTO){
+  return request({
+    url: '/task/status',
+    method: 'POST',
+    data: dto,
+  })
 }
