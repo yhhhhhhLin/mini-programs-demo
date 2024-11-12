@@ -10,12 +10,15 @@ declare module 'vue' {
     NutButton: typeof import('@nutui/nutui-taro')['Button']
     NutCalendarCard: typeof import('@nutui/nutui-taro')['CalendarCard']
     NutCell: typeof import('@nutui/nutui-taro')['Cell']
+    NutCheckbox: typeof import('@nutui/nutui-taro')['Checkbox']
     NutCollapse: typeof import('@nutui/nutui-taro')['Collapse']
     NutCollapseItem: typeof import('@nutui/nutui-taro')['CollapseItem']
     NutDatePicker: typeof import('@nutui/nutui-taro')['DatePicker']
     NutDialog: typeof import('@nutui/nutui-taro')['Dialog']
     NutInput: typeof import('@nutui/nutui-taro')['Input']
     NutNotify: typeof import('@nutui/nutui-taro')['Notify']
+    NutRadio: typeof import('@nutui/nutui-taro')['Radio']
+    NutRadioGroup: typeof import('@nutui/nutui-taro')['RadioGroup']
     NutTable: typeof import('@nutui/nutui-taro')['Table']
   }
 }

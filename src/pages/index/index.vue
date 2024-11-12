@@ -43,6 +43,20 @@
                   <nut-input v-model="addTaskContent" placeholder="输入任务内容"/>
                 </div>
               </div>
+              <div class="add-task-notify">
+                <div class="add-task-notify-title">
+                  <nut-checkbox v-model="addTaskNeedNotify">是否需要通知</nut-checkbox>
+                </div>
+                <div class="add-task-notify-methods">
+                  <nut-radio-group v-model="addTaskNotifyType" v-if="addTaskNeedNotify">
+                    <nut-radio label='0' shape="button">微信通知</nut-radio>
+                    <nut-radio label='1' shape="button">邮箱通知</nut-radio>
+                    <nut-radio label='2' shape="button">短信通知</nut-radio>
+                  </nut-radio-group>
+                </div>
+
+              </div>
+
             </nut-dialog>
           </div>
         </div>
@@ -103,6 +117,8 @@ const datePickerValue = ref(new Date());
 const calendarsPickDate = ref(new Date())
 const addTaskVisible = ref(false)
 const addTaskContent = ref('')
+const addTaskNeedNotify = ref(false)
+const addTaskNotifyType = ref('0')
 const isCalendarVisible = ref(true)
 
 const expiredTaskList = reactive([]);
@@ -285,7 +301,12 @@ const onOkAddTask = () => {
   addDate.setFullYear(year)
   addDate.setMonth(month)
   addDate.setDate(day)
-  addTask({taskContent: addTaskContent.value, taskTime: addDate, needNotify: false}).then((res) => {
+  addTask({
+    taskContent: addTaskContent.value,
+    taskTime: addDate,
+    needNotify: addTaskNeedNotify.value,
+    notifyMethod: addTaskNotifyType.value
+  }).then((res) => {
     // 添加成功后重新获取日历信息和当日任务
     getCalendarsByMonth(year, parseInt(month) + 1);
     getTaskByDate(year, parseInt(month) + 1, parseInt(day));

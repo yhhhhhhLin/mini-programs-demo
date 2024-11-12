@@ -16,6 +16,7 @@ declare namespace API {
     taskTime: Date,
     // TODO 后续添加发送这个参数
     needNotify: boolean
+    notifyMethod: number
   }
 
   type QueryTaskDTO = {
