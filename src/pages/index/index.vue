@@ -49,9 +49,9 @@
                 </div>
                 <div class="add-task-notify-methods">
                   <nut-radio-group v-model="addTaskNotifyType" v-if="addTaskNeedNotify">
-                    <nut-radio label='0' shape="button">微信通知</nut-radio>
+                    <nut-radio label='0' shape="button" disabled>微信通知</nut-radio>
                     <nut-radio label='1' shape="button">邮箱通知</nut-radio>
-                    <nut-radio label='2' shape="button">短信通知</nut-radio>
+                    <nut-radio label='2' shape="button" disabled>短信通知</nut-radio>
                   </nut-radio-group>
                 </div>
 
@@ -118,7 +118,7 @@ const calendarsPickDate = ref(new Date())
 const addTaskVisible = ref(false)
 const addTaskContent = ref('')
 const addTaskNeedNotify = ref(false)
-const addTaskNotifyType = ref('0')
+const addTaskNotifyType = ref('1')
 const isCalendarVisible = ref(true)
 
 const expiredTaskList = reactive([]);
