@@ -39,3 +39,9 @@ export function updateTaskStatus(dto: API.UpdateStatusDTO){
     data: dto,
   })
 }
+
+export function listTaskTags(){
+  return request({
+    url: '/taskTag/list',
+  })
+}

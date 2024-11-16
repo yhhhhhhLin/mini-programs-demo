@@ -16,9 +16,13 @@ declare module 'vue' {
     NutDatePicker: typeof import('@nutui/nutui-taro')['DatePicker']
     NutDialog: typeof import('@nutui/nutui-taro')['Dialog']
     NutInput: typeof import('@nutui/nutui-taro')['Input']
+    NutMenu: typeof import('@nutui/nutui-taro')['Menu']
+    NutMenuItem: typeof import('@nutui/nutui-taro')['MenuItem']
     NutNotify: typeof import('@nutui/nutui-taro')['Notify']
     NutRadio: typeof import('@nutui/nutui-taro')['Radio']
     NutRadioGroup: typeof import('@nutui/nutui-taro')['RadioGroup']
     NutTable: typeof import('@nutui/nutui-taro')['Table']
+    NutTabPane: typeof import('@nutui/nutui-taro')['TabPane']
+    NutTabs: typeof import('@nutui/nutui-taro')['Tabs']
   }
 }

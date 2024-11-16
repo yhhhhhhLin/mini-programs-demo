@@ -23,6 +23,7 @@ declare namespace API {
     year: number,
     month: number,
     day: number
+    tagId: number
   }
 
   type TaskVO = {

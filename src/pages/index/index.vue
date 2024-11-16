@@ -65,41 +65,84 @@
             代办内容：
           </div>
           <div class="todo-list-body-title-right">
-            {{ currentCount }}
+            <div>
+              {{ currentCount }}
+            </div>
+            <div class="todo-list-body-title-right-button">
+              <nut-button type="info" size="small" @click="baseClickAddTaskTag" >
+                添加标签
+              </nut-button>
+              <nut-dialog title="添加标签" :visible="addTaskTagVisible" @cancel="cancelTagDialog" @ok="onOkAddTaskTag" @opened="openAddTaskTagInit" >
+                <nut-input v-model="addTaskTagName" placeholder="标签名称" />
+              </nut-dialog>
+            </div>
           </div>
         </div>
+        <div class="todo-list-body-tag">
+          <div class="todo-list-body-title-mid">
+            <div class="todo-list-tags">
+              <nut-tabs v-model="defaultTaskTagKey" title-scroll type="smile" @click="onChangeTag">
+                <nut-tab-pane title="全部" :pane-key = 0>
+                  <TaskTodoListBody
+                    :columns="todoListColumns"
+                    :expiredTaskList="expiredTaskList"
+                    :inCompleteTaskList="inCompleteTaskList"
+                    :completeTaskList="completeTaskList"
+                    :expiredTaskCount="expiredTaskCount"
+                    :inCompleteTaskCount="inCompleteTaskCount"
+                    :completeTaskCount="completeTaskCount"
+                  />
+                </nut-tab-pane>
+                <nut-tab-pane v-for="(id,tagName) in taskTags" :key="id" :title="tagName" :pane-key="id">
+                  <TaskTodoListBody
+                    :columns="todoListColumns"
+                    :expiredTaskList="expiredTaskList"
+                    :inCompleteTaskList="inCompleteTaskList"
+                    :completeTaskList="completeTaskList"
+                    :expiredTaskCount="expiredTaskCount"
+                    :inCompleteTaskCount="inCompleteTaskCount"
+                    :completeTaskCount="completeTaskCount"
+                  />
+                </nut-tab-pane>
+              </nut-tabs>
 
-        <div class="todo-list-body">
-          <div class="todo-list-body-expired-task">
-            <nut-collapse>
-              <nut-collapse-item name="expired-task" title="标题">
-                <template #title>超时任务</template>
-                <template #value>{{ expiredTaskCount }}</template>
-                <nut-table :columns="todoListColumns" :data="expiredTaskList"></nut-table>
-              </nut-collapse-item>
-            </nut-collapse>
-          </div>
+            </div>
+            <div class="todo-list-tag-add">
 
-          <div class="todo-list-body-incomplete-task">
-            <nut-collapse>
-              <nut-collapse-item name="name未完成任务" title="未完成任务" value="数量">
-                <template #title>未完成任务</template>
-                <template #value>{{ inCompleteTaskCount }}</template>
-                <nut-table :columns="todoListColumns" :data="inCompleteTaskList"></nut-table>
-              </nut-collapse-item>
-            </nut-collapse>
-          </div>
-
-          <div class="todo-list-body-complete-task">
-            <nut-collapse>
-              <nut-collapse-item name="name完成任务" title="完成任务" value="数量">
-                <template #title>完成任务</template>
-                <template #value>{{ completeTaskCount }}</template>
-                <nut-table :columns="todoListColumns" :data="completeTaskList"></nut-table>
-              </nut-collapse-item>
-            </nut-collapse>
+            </div>
           </div>
         </div>
+        <!--        <div class="todo-list-body">-->
+        <!--          <div class="todo-list-body-expired-task">-->
+        <!--            <nut-collapse>-->
+        <!--              <nut-collapse-item name="expired-task" title="标题">-->
+        <!--                <template #title>超时任务</template>-->
+        <!--                <template #value>{{ expiredTaskCount }}</template>-->
+        <!--                <nut-table :columns="todoListColumns" :data="expiredTaskList"></nut-table>-->
+        <!--              </nut-collapse-item>-->
+        <!--            </nut-collapse>-->
+        <!--          </div>-->
+
+        <!--          <div class="todo-list-body-incomplete-task">-->
+        <!--            <nut-collapse>-->
+        <!--              <nut-collapse-item name="name未完成任务" title="未完成任务" value="数量">-->
+        <!--                <template #title>未完成任务</template>-->
+        <!--                <template #value>{{ inCompleteTaskCount }}</template>-->
+        <!--                <nut-table :columns="todoListColumns" :data="inCompleteTaskList"></nut-table>-->
+        <!--              </nut-collapse-item>-->
+        <!--            </nut-collapse>-->
+        <!--          </div>-->
+
+        <!--          <div class="todo-list-body-complete-task">-->
+        <!--            <nut-collapse>-->
+        <!--              <nut-collapse-item name="name完成任务" title="完成任务" value="数量">-->
+        <!--                <template #title>完成任务</template>-->
+        <!--                <template #value>{{ completeTaskCount }}</template>-->
+        <!--                <nut-table :columns="todoListColumns" :data="completeTaskList"></nut-table>-->
+        <!--              </nut-collapse-item>-->
+        <!--            </nut-collapse>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
       </div>
     </div>
@@ -108,18 +151,25 @@
 
 <script setup>
 import {computed, h, onMounted, reactive, ref} from 'vue'
-import {addTask, getCalendarsAndQuantities, listTask, updateTaskStatus} from "../../services/home";
+import {addTask, getCalendarsAndQuantities, listTask, listTaskTags, updateTaskStatus} from "../../services/home";
 import {isLogin} from "../../uitls/request";
 import Taro from "@tarojs/taro";
+import TaskTodoListBody from "../../components/TaskTodoListBody.vue";
+import {addTaskTags} from "../../services/taskTag";
+
+const defaultTaskTagKey = ref('0')
 
 // 选择日期后只会更新时和分，不会更新年月日
 const datePickerValue = ref(new Date());
 const calendarsPickDate = ref(new Date())
 const addTaskVisible = ref(false)
+const addTaskTagVisible = ref(false)
 const addTaskContent = ref('')
 const addTaskNeedNotify = ref(false)
 const addTaskNotifyType = ref('1')
 const isCalendarVisible = ref(true)
+const taskTagId = ref(0)
+const addTaskTagName = ref('')
 
 const expiredTaskList = reactive([]);
 const expiredTaskCount = ref(0)
@@ -127,6 +177,8 @@ const inCompleteTaskList = reactive([]);
 const inCompleteTaskCount = ref(0)
 const completeTaskList = reactive([]);
 const completeTaskCount = ref(0)
+
+const taskTags = reactive([]);
 
 
 const dailyTaskList = reactive([]);
@@ -187,6 +239,8 @@ onMounted(async () => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const temp = await getCalendarsByMonth(year, month);
+  // 获取所有tags
+  await getTaskTags();
   // 获取当前天的是所有任务
   await getTaskByDate(year, month, day);
 })
@@ -207,8 +261,19 @@ function formatTaskTime(taskTime) {
   return [date.getHours(), date.getMinutes()].join(':');
 }
 
+const getTaskTags = async () => {
+  listTaskTags().then((res) => {
+    const result = res.data
+    taskTags.length = 0
+    result.forEach((item) => {
+      taskTags.push(item)
+    })
+  })
+}
+
 const getTaskByDate = async (year, month, day) => {
-  listTask({year, month, day}).then((res) => {
+  const tagId = taskTagId.value
+  listTask({year, month, day, tagId}).then((res) => {
     const result = res.data;
     // TODO 抽成一个方法
     expiredTaskList.length = 0;
@@ -284,11 +349,37 @@ const baseClickAddTask = () => {
   addTaskVisible.value = true;
 };
 
+const baseClickAddTaskTag = () => {
+  addTaskTagVisible.value = true;
+};
+
 const openAddTaskInit = () => {
   const date = new Date()
   date.setSeconds(0, 0)
   datePickerValue.value = date
   addTaskContent.value = ''
+}
+
+const openAddTaskTagInit = () => {
+  addTaskTagName.value = ''
+}
+
+const onOkAddTaskTag = () =>{
+  console.log('添加task tag:'+addTaskTagName.value)
+  // 调用添加tag接口
+  addTaskTags(addTaskTagName.value).then(res=>{
+    if(res.data){
+      // 重新获取所有tags
+      getTaskTags()
+    }
+  })
+
+
+}
+
+const cancelTagDialog = () =>{
+  console.log()
+  addTaskTagVisible.value = !addTaskTagVisible.value
 }
 
 const onOkAddTask = () => {
@@ -331,6 +422,19 @@ const onChangeMonth = ({year, month}) => {
   // 重新请求获取当前年月日期对应的任务
   getCalendarsByMonth(year, month);
 
+
+}
+
+const onChangeTag = ({title, paneKey, disabled}) => {
+  console.log('当前标签id,todo 按照标签查找对应任务:' + paneKey)
+  taskTagId.value = paneKey;
+
+  const date = new Date(datePickerValue.value);
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  // 获取当前天的是所有任务
+  getTaskByDate(year, month, day);
 
 }
 
